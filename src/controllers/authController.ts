@@ -96,8 +96,11 @@ export const loginViaConnectWallet = async (req: Request, res: Response) => {
             });
         }
         return res.json({
-            user,
-            token: generateAccessToken(user),
+            code: 0,
+            data: {
+                user,
+                token: generateAccessToken(user),
+            },
         });
     } catch (error) {
         // console.log(error);
