@@ -37,14 +37,15 @@ export const createTalent = async (req: AuthRequest, res: Response) => {
         });
     const { media } = payload.files;
 
-    const uploadedMedia = await cloudinary.uploader
-        .upload(media.path, {
+    let uploadedMedia;
+    try {
+        uploadedMedia = await cloudinary.uploader.upload(media.path, {
             resource_type: "auto",
-        })
-        .catch((err) => {
-            console.log(err);
-            return res.status(500).json(errServer());
         });
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json(errServer());
+    }
 
     try {
         const newTalent = await Talent.create({
