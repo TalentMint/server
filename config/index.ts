@@ -24,3 +24,7 @@ export const cloudinaryConfig = {
     apiKey: process.env.CLOUDINARY_API_KEY,
     apiSecret: process.env.CLOUDINARY_API_SECRET,
 };
+
+export const smartcontractConfig = {
+    objectID: process.env.CONTRACT_OBJECT_ID
+}

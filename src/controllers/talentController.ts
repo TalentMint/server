@@ -10,6 +10,11 @@ import { AuthRequest } from "../middlewares/types";
 
 import cloudinary from "../utils/cloudinary";
 
+import { SuiClient } from "@mysten/sui/client";
+import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
+// import { RawSigner } from "@mysten/sui/signers/raw-signer";
+import { Transaction } from "@mysten/sui/transactions";
+
 export const createTalent = async (req: AuthRequest, res: Response) => {
     const payload = getReqFields(req, res, {
         requiredFields: ["name", "quantity", "description", "value"],
@@ -65,9 +70,71 @@ export const createTalent = async (req: AuthRequest, res: Response) => {
         });
     } catch (error) {
         console.log(error);
-        return res.status(500).json({
-            code: 99,
-            message: "Unable to create Talent, please try again!",
+        return res.status(500).json(errServer());
+    }
+};
+
+export const fetchTalents = async (req: AuthRequest, res: Response) => {
+    try {
+        const talents = await Talent.find({
+            walletAddress: req.user.walletAddress,
+        }).select("-__v -createdAt -updatedAt");
+        return res.json({
+            code: 0,
+            data: talents,
         });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json(errServer());
+    }
+};
+
+export const getTalentDetails = async (req: AuthRequest, res: Response) => {
+    const { talentID } = req.params;
+    try {
+        const talent = await Talent.findById(talentID).select("-__v");
+        if (!talent)
+            return res.status(404).json({
+                code: 4,
+                message: `Invalid talent ID: ${talentID}`,
+            });
+        return res.json({
+            code: 0,
+            data: talent,
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json(errServer());
+    }
+};
+
+export const mintTalent = async (req: AuthRequest, res: Response) => {
+    const { talentID } = req.params;
+
+    try {
+        const talent = await Talent.findById(talentID);
+        if (!talent)
+            return res.status(404).json({
+                code: 4,
+                message: `Invalid talent ID: ${talentID}`,
+            });
+
+        if (talent.quantity <= 0)
+            return res.status(404).json({
+                code: 4,
+                message: `Talent out of quantity ${talentID}`,
+            });
+
+        // smart contract interaction
+
+        talent.quantity -= 1;
+        await talent.save();
+        return res.json({
+            code: 0,
+            message: `Minted successfully to wallet ${req.user.walletAddress}`,
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json(errServer());
     }
 };
