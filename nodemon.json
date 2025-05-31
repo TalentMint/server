@@ -1,0 +1,6 @@
+{
+    "watch": ["dist"],
+    "ext": "js",
+    "delay": "100",
+    "exec": "node dist/bin/www"
+}
